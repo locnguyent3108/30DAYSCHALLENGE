@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Word Press" parallel="false" thread-count="3">
+    <test name="run on Chrome">
+        <parameter name="browser" value="CHROME"></parameter>
+<!--        <parameter name="ip" value="firefox"></parameter> using for grid -->
+        <classes>
+            <class name="com.wordpress.login.Login_02_Apply_AbstractPage"/>
+        </classes>
+    </test>
+    <test name="run on Firefox">
+        <parameter name="browser" value="FIREFOX"></parameter>
+        <classes>
+            <class name="com.wordpress.login.Login_02_Apply_AbstractPage"/>
+        </classes>
+    </test>
+<!--    <test name="run on Edge">-->
+<!--        <parameter name="browser" value="Edge"></parameter>-->
+<!--        <classes>-->
+<!--            <class name="com.wordpress.login.Login_02_Apply_AbstractPage"/>-->
+<!--        </classes>-->
+<!--    </test>-->
+</suite>

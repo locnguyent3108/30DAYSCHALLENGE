@@ -9,7 +9,9 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.util.List;
 import java.util.Set;
 
-public class AbstractPage {
+public abstract class AbstractPage {
+    public abstract boolean isPageLoaded(String pageUrl);
+
     WebDriverWait explicitWait;
     WebDriver driver;
     Select select;
@@ -24,6 +26,9 @@ public class AbstractPage {
         driver.get(urlValue);
     }
 
+    public String getCurrentURL() {
+        return driver.getCurrentUrl();
+    }
     public String getPageTitle() {
         return driver.getTitle();
     }

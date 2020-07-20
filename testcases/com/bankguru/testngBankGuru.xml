@@ -3,7 +3,7 @@
     <suite name="Word Press" parallel="false">
         <test name="run on Chrome">
             <classes>
-
+                <class name="com.bankguru.login.Login_01_RegisterAndLogin"/>
             </classes>
         </test>
     </suite>
