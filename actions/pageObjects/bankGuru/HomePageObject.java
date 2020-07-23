@@ -9,10 +9,5 @@ public class HomePageObject extends AbstractPage {
         System.out.println("Driver at home page: " + driver.toString());
     }
 
-    @Override
-    public boolean isPageLoaded(String pageUrl) {
-        String currentUrl = getCurrentURL();
-        return currentUrl.contains(pageUrl);
-    }
 
 }

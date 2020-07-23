@@ -1,15 +1,12 @@
 package pageObjects.wordpress;
 
 import commons.AbstractPage;
+import commons.PageGenerator;
 import org.openqa.selenium.WebDriver;
+import pageUI.wordpress.DashboardPageUI;
 import pageUI.wordpress.LoginPageUI;
 
 public class LoginPageObject extends AbstractPage {
-
-    @Override
-    public boolean isPageLoaded(String pageUrl) {
-        return false;
-    }
 
     public LoginPageObject(WebDriver driver) {
         super(driver);
@@ -23,17 +20,18 @@ public class LoginPageObject extends AbstractPage {
         openUrl(url);
     }
 
-    public void clickLoginButton() {
-        clickElement(LoginPageUI.CONTINUE_OR_LOGIN_BUTTON);
-    }
-
     public String getErrorMessage() {
        waitForElementVisible(LoginPageUI.ERROR_MESSAGE);
        return getElementText(LoginPageUI.ERROR_MESSAGE);
     }
 
+    public void clickToLogin() {
+        waitForElementClickable(LoginPageUI.CONTINUE_OR_LOGIN_BUTTON);
+        clickElement(LoginPageUI.CONTINUE_OR_LOGIN_BUTTON);
+    }
+
     public void inputToPassword(String s) {
         waitForElementVisible(LoginPageUI.PASSWORD_TEXTBOX);
-        sendKey(LoginPageUI.PASSWORD_TEXTBOX, "automationfc");
+        sendKey(LoginPageUI.PASSWORD_TEXTBOX, s);
     }
 }

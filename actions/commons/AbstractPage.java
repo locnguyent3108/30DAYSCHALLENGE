@@ -5,19 +5,28 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import pageObjects.wordpress.DashboardPageObject;
+import pageObjects.wordpress.MediaPageObject;
+import pageObjects.wordpress.PageObjects;
+import pageObjects.wordpress.PostPageObject;
+import pageUI.wordpress.*;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractPage {
-    public abstract boolean isPageLoaded(String pageUrl);
 
     WebDriverWait explicitWait;
-    WebDriver driver;
+    protected WebDriver driver;
     Select select;
     JavascriptExecutor jsExec;
     Actions act;
     long longTimeout = 30;
+
     public AbstractPage(WebDriver driver) {
         this.driver = driver;
     }
@@ -29,11 +38,12 @@ public abstract class AbstractPage {
     public String getCurrentURL() {
         return driver.getCurrentUrl();
     }
+
     public String getPageTitle() {
         return driver.getTitle();
     }
 
-    public void back(){
+    public void back() {
         driver.navigate().back();
     }
 
@@ -69,8 +79,8 @@ public abstract class AbstractPage {
     public void switchWindowByID(String parentID) {
         Set<String> allWindows = driver.getWindowHandles();
 
-        for(String runWindow: allWindows) {
-            if(runWindow.equals(parentID)) {
+        for (String runWindow : allWindows) {
+            if (runWindow.equals(parentID)) {
                 driver.switchTo().window(runWindow);
                 break;
             }
@@ -79,10 +89,10 @@ public abstract class AbstractPage {
 
     public void switchToWindowByTitle(String title) {
         Set<String> allWindows = driver.getWindowHandles();
-        for(String runWindow: allWindows) {
+        for (String runWindow : allWindows) {
             driver.switchTo().window(runWindow);
             String currentWinTitle = driver.getTitle();
-            if(currentWinTitle.equals(title)) {
+            if (currentWinTitle.equals(title)) {
                 break;
             }
         }
@@ -90,14 +100,14 @@ public abstract class AbstractPage {
 
     public boolean areAllWindowClosedWithoutParent(String parentWindow) {
         Set<String> allWindow = driver.getWindowHandles();
-        for(String runWindows: allWindow) {
-            if(runWindows.equals(parentWindow)) {
+        for (String runWindows : allWindow) {
+            if (runWindows.equals(parentWindow)) {
                 driver.switchTo().window(runWindows);
                 driver.close();
             }
         }
         driver.switchTo().window(parentWindow);
-        if(driver.getWindowHandles().size() == 1) {
+        if (driver.getWindowHandles().size() == 1) {
             return true;
         } else {
             return false;
@@ -123,14 +133,14 @@ public abstract class AbstractPage {
 
     public void clickToCheckbox(String locator) {
         WebElement e = findElement(locator);
-        if(!e.isDisplayed()) {
+        if (!e.isDisplayed()) {
             e.click();
         }
     }
 
     public void unselectCheckBox(String locator) {
         WebElement e = findElement(locator);
-        if(e.isDisplayed()) {
+        if (e.isDisplayed()) {
             e.click();
         }
     }
@@ -151,7 +161,8 @@ public abstract class AbstractPage {
     public String getElementAttribute(String locator, String attributeName) {
         return findElement(locator).getAttribute(attributeName);
     }
-    public void selectValueInDropdown(WebDriver driver, String locator, String value) {
+
+    public void selectValueInDropdown(String locator, String value) {
         select = new Select(findElement(locator));
         select.selectByVisibleText(value);
     }
@@ -169,7 +180,7 @@ public abstract class AbstractPage {
         explicitWait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(byXpath(allItemXpath)));
         List<WebElement> allItems = findListElement(allItemXpath);
 
-        for(WebElement childElement : allItems) {
+        for (WebElement childElement : allItems) {
             if (childElement.getText().equals(expectedValueItem)) {
                 childElement.click();
             } else {
@@ -179,9 +190,19 @@ public abstract class AbstractPage {
             break;
         }
     }
-
+    //custom element display
     public boolean isElementDisplayed(String locator) {
-        return findElement(locator).isDisplayed();
+        try{
+            // thay doi gia tri timeout
+            driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+            WebElement e = findElement(locator);
+            //convert to default
+            driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+            return e.isDisplayed();
+        }catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean isElementEnabled(String locator) {
@@ -203,7 +224,7 @@ public abstract class AbstractPage {
     public void hoverMouseToElement(String locator) {
         act = new Actions(driver);
         act.moveToElement(findElement(locator))
-            .perform();
+                .perform();
     }
 
     public void doubleClick(String locator) {
@@ -273,7 +294,7 @@ public abstract class AbstractPage {
                 ("return arguments[0].complete " +
                         "&& typeof arguments[0].naturalWidth != \"undefined\" " +
                         "&& arguments[0].naturalWidth > 0", e);
-        Boolean result = (status)? true: false;
+        Boolean result = (status) ? true : false;
         return result;
     }
 
@@ -288,13 +309,125 @@ public abstract class AbstractPage {
         explicitWait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(locator)));
     }
 
-    public void waitForElementClickable(String locator) {
+    public void waitForElementsInvisible(String locator) {
+        explicitWait = new WebDriverWait(driver, 30);
+        List<WebElement> el = findListElement(locator);
+        explicitWait.until(ExpectedConditions.invisibilityOfAllElements(el));
+    }
 
+    public void waitForElementClickable(String locator) {
+        explicitWait = new WebDriverWait(driver, longTimeout);
+        explicitWait.until(ExpectedConditions.elementToBeClickable(By.xpath(locator)));
+    }
+
+    public void uploadMultipleFiles(String... fileNames) {
+        String fullFileName = "";
+        for (String file : fileNames) {
+            fullFileName = fullFileName + GlobalConstant.UPLOAD_FOLDER + file + "\n";
+        }
+        fullFileName = fullFileName.trim();
+        sendKey(AbstractPageUI.UPLOAD_TYPE, fullFileName);
+    }
+    //Navigation function
+//        public PostPageObject openPostPage() {
+//            waitForElementClickable(AbstractPageUI.POST_NAVIGATION_MENU);
+//            clickElement(AbstractPageUI.POST_NAVIGATION_MENU);
+//            return PageGenerator.getPostPageInstance(driver);
+//        }
+//
+//        public MediaPageObject openMediaPage() {
+//            waitForElementVisible(AbstractPageUI.MEDIA_NAVIGATION_MENU);
+//            clickElement(AbstractPageUI.MEDIA_NAVIGATION_MENU);
+//            return PageGenerator.getMediaPageInstance(driver);
+//        }
+//
+//        public PageObjects openPagesPage() {
+//            waitForElementVisible(AbstractPageUI.PAGE_NAVIGATION_MENU);
+//            clickElement(AbstractPageUI.PAGE_NAVIGATION_MENU);
+//            return PageGenerator.getPageInstance(driver);
+//        }
+//
+//        public DashboardPageObject openDashboard() {
+//            waitForElementVisible(AbstractPageUI.DASHBOARD_NAVIGATION_MENU);
+//            clickElement(AbstractPageUI.DASHBOARD_NAVIGATION_MENU);
+//            return  PageGenerator.getDashboardPageInstance(driver);
+//        }
+
+    public Object navigateToPage(String locator) {
+        String element = String.format(AbstractPageUI.DYNAMIC_NAVIGATION, locator);
+        waitForElementVisible(element);
+        clickElement(element);
+        return PageGenerator.getDestinationPageInstionce(driver, locator);
+    }
+
+    public boolean areFileUploaded(String... fileNames) {
+        waitForElementInvisible(AbstractPageUI.MEDIA_PROGRESS);
+        List<WebElement> els = findListElement(AbstractPageUI.ALL_UPLOADED_IMAGE);
+        ArrayList<String> sourceElement = new ArrayList<>();
+        for (WebElement e : els) {
+            sourceElement.add(e.getAttribute("src"));
+        }
+
+
+        return true;
+    }
+
+    //CHECK UNDISPLAY AND STHING BULLSHIT
+    public void overrideGlobalTimeout(int timeout) {
+        driver.manage().timeouts().implicitlyWait(timeout, TimeUnit.SECONDS);
+    }
+
+    // NEED FIX: su dung ham presence de check
+    public boolean isElementUndisplayed(String locator) {
+        overrideGlobalTimeout(5);
+        List<WebElement> e = findListElement(locator);
+
+        if(e.size() == 0) {
+            System.out.println("Element not in DOM");
+            System.out.println("END time = " + new Date().toString());
+            overrideGlobalTimeout(10);
+            return  true;
+        } else if (e.size() > 0 && !e.get(0).isDisplayed()) {
+            System.out.println("element in DOM but not visible");
+            System.out.println("End time = " + new Date().toString());
+            overrideGlobalTimeout(10);
+            return true;
+        } else {
+            System.out.println("Element in DOM and visible");
+            overrideGlobalTimeout(10);
+            return  false;
+        }
     }
 
 
+    public boolean verifyTrue(boolean condition) {
+        try {
+            Assert.assertTrue(condition);
+            return true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
+    public boolean verifyFalse(boolean condition) {
+        try {
+            Assert.assertFalse(condition);
+            return true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
-
-
+    public boolean verifyEqual(Object actual, Object expected) {
+        try {
+            Assert.assertEquals(actual, expected);
+            return true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
+
